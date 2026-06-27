@@ -1,65 +1,95 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import { useCallback, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Loader2, MapPin } from 'lucide-react';
+import { PlaceCard } from '@/components/place-card';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { placesApi } from '@/lib/api';
+
+export default function HomePage() {
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(
+    null,
+  );
+  const [geoError, setGeoError] = useState<string | null>(null);
+
+  const { data: places, isLoading } = useQuery({
+    queryKey: ['nearby', coords],
+    queryFn: () =>
+      placesApi.nearby({ lat: coords!.lat, lng: coords!.lng, radius: 2000 }),
+    enabled: !!coords,
+    staleTime: 30_000,
+  });
+
+  const locate = useCallback(() => {
+    setGeoError(null);
+    if (!navigator.geolocation) {
+      setGeoError('La géolocalisation n’est pas supportée par ce navigateur.');
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) =>
+        setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      () => setGeoError("Impossible d'accéder à votre position."),
+    );
+  }, []);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div className="mx-auto max-w-5xl px-4 py-12">
+      <div className="mb-12 text-center">
+        <h1 className="mb-3 text-4xl font-bold tracking-tight">
+          Découvrez les lieux halal à Paris
+        </h1>
+        <p className="mb-8 text-lg text-muted-foreground">
+          Restaurants, mosquées et activités sans alcool — certifiés et
+          géolocalisés.
+        </p>
+        <Button size="lg" onClick={locate} disabled={isLoading}>
+          {isLoading ? (
+            <>
+              <Loader2 className="animate-spin" />
+              Recherche en cours…
+            </>
+          ) : (
+            <>
+              <MapPin />
+              Rechercher près de moi
+            </>
+          )}
+        </Button>
+        {geoError && (
+          <p className="mt-3 text-sm text-destructive">{geoError}</p>
+        )}
+      </div>
+
+      {isLoading && (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} className="h-36 rounded-xl" />
+          ))}
+        </div>
+      )}
+
+      {places && places.length === 0 && (
+        <p className="text-center text-muted-foreground">
+          Aucun lieu trouvé dans un rayon de 2 km.
+        </p>
+      )}
+
+      {places && places.length > 0 && (
+        <>
+          <p className="mb-4 text-sm text-muted-foreground">
+            {places.length} lieu{places.length > 1 ? 'x' : ''} trouvé
+            {places.length > 1 ? 's' : ''} près de vous
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {places.map((place) => (
+              <PlaceCard key={place.id} place={place} />
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }
