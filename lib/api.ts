@@ -1,4 +1,5 @@
 import type {
+  AdminUser,
   AuthTokens,
   AuthUser,
   CreatePlacePayload,
@@ -6,10 +7,12 @@ import type {
   NearbyQuery,
   PaginatedResult,
   Place,
+  PlaceStats,
+  PlaceType,
 } from './types';
 import { ApiError } from './types';
 
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000';
+const BASE = '/api';
 
 async function request<T>(
   path: string,
@@ -50,8 +53,11 @@ function buildQuery(params: Record<string, unknown>): string {
 // ── Places ────────────────────────────────────────────────────────────────────
 
 export const placesApi = {
-  list: (params?: { page?: number; limit?: number }) =>
+  list: (params?: { page?: number; limit?: number; published?: boolean; types?: PlaceType[] }) =>
     request<PaginatedResult<Place>>(`/places?${buildQuery(params ?? {})}`),
+
+  stats: (token: string) =>
+    request<PlaceStats>('/places/stats', { token }),
 
   nearby: (query: NearbyQuery) =>
     request<NearbyPlace[]>(`/places/nearby?${buildQuery(query as unknown as Record<string, unknown>)}`),
@@ -70,6 +76,13 @@ export const placesApi = {
 
   remove: (id: string, token: string) =>
     request<void>(`/places/${id}`, { method: 'DELETE', token }),
+};
+
+// ── Users ─────────────────────────────────────────────────────────────────────
+
+export const usersApi = {
+  list: (token: string) =>
+    request<AdminUser[]>('/users', { token }),
 };
 
 // ── Auth ─────────────────────────────────────────────────────────────────────

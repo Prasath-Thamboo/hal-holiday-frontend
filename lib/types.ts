@@ -16,6 +16,8 @@ export interface Place {
   prayer_room: boolean;
   published: boolean;
   created_at: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface NearbyPlace extends Place {
@@ -68,6 +70,20 @@ export interface CreatePlacePayload {
   serves_alcohol?: boolean;
   prayer_room?: boolean;
   published?: boolean;
+}
+
+export interface PlaceStats {
+  total: number;
+  published: number;
+  drafts: number;
+  byType: { restaurant: number; mosque: number; activity: number };
+}
+
+export interface AdminUser {
+  id: string;
+  email: string;
+  role: UserRole;
+  created_at: string;
 }
 
 export class ApiError extends Error {

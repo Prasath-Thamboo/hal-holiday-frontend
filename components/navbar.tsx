@@ -35,7 +35,7 @@ export function Navbar() {
             (user ? (
               <>
                 {user.role === 'admin' && (
-                  <Link href="/admin/lieux">
+                  <Link href="/admin">
                     <Button variant="outline" size="sm">
                       Admin
                     </Button>

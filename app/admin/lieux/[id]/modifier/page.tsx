@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { use, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -17,23 +17,24 @@ import { Skeleton } from '@/components/ui/skeleton';
 export default function ModifierLieuPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = use(params);
   const { accessToken } = useAuth();
   const router = useRouter();
   const qc = useQueryClient();
   const [loading, setLoading] = useState(false);
 
   const { data: place, isLoading } = useQuery({
-    queryKey: ['place', params.id],
-    queryFn: () => placesApi.byId(params.id, accessToken!),
+    queryKey: ['place', id],
+    queryFn: () => placesApi.byId(id, accessToken!),
     enabled: !!accessToken,
   });
 
   async function handleSubmit(values: PlaceFormValues) {
     setLoading(true);
     try {
-      await placesApi.update(params.id, values, accessToken!);
+      await placesApi.update(id, values, accessToken!);
       void qc.invalidateQueries({ queryKey: ['admin-places'] });
       toast.success('Lieu mis à jour.');
       router.push('/admin/lieux');

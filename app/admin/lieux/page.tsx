@@ -72,7 +72,14 @@ export default function AdminLieuxPage() {
             <tbody className="divide-y divide-border">
               {data.data.map((place) => (
                 <tr key={place.id} className="hover:bg-muted/30 transition-colors">
-                  <td className="px-4 py-2.5 font-medium">{place.name}</td>
+                  <td className="px-4 py-2.5 font-medium">
+                    <Link
+                      href={`/admin/lieux/${place.id}`}
+                      className="hover:underline"
+                    >
+                      {place.name}
+                    </Link>
+                  </td>
                   <td className="px-4 py-2.5">
                     <Badge variant="secondary">{place.type}</Badge>
                   </td>

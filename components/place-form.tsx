@@ -168,7 +168,7 @@ export function PlaceForm({
             required
             min={-90}
             max={90}
-            defaultValue={d ? undefined : undefined}
+            defaultValue={d?.latitude}
           />
         </Field>
 
@@ -182,7 +182,7 @@ export function PlaceForm({
             required
             min={-180}
             max={180}
-            defaultValue={d ? undefined : undefined}
+            defaultValue={d?.longitude}
           />
         </Field>
       </div>
