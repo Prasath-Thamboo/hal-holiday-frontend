@@ -3,12 +3,14 @@ import type {
   AuthTokens,
   AuthUser,
   CreatePlacePayload,
+  CreateUserPayload,
   NearbyPlace,
   NearbyQuery,
   PaginatedResult,
   Place,
   PlaceStats,
   PlaceType,
+  UserRole,
 } from './types';
 import { ApiError } from './types';
 
@@ -83,6 +85,23 @@ export const placesApi = {
 export const usersApi = {
   list: (token: string) =>
     request<AdminUser[]>('/users', { token }),
+
+  create: (data: CreateUserPayload, token: string) =>
+    request<AdminUser>('/users', { method: 'POST', body: JSON.stringify(data), token }),
+
+  updateRole: (id: string, role: UserRole, token: string) =>
+    request<AdminUser>(`/users/${id}/role`, {
+      method: 'PATCH',
+      body: JSON.stringify({ role }),
+      token,
+    }),
+
+  setActive: (id: string, isActive: boolean, token: string) =>
+    request<AdminUser>(`/users/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ isActive }),
+      token,
+    }),
 };
 
 // ── Auth ─────────────────────────────────────────────────────────────────────

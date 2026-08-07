@@ -83,7 +83,14 @@ export interface AdminUser {
   id: string;
   email: string;
   role: UserRole;
+  isActive: boolean;
   created_at: string;
+}
+
+export interface CreateUserPayload {
+  email: string;
+  password: string;
+  role?: UserRole;
 }
 
 export class ApiError extends Error {
