@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { MoonStar } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/ui/button';
 
@@ -10,10 +11,11 @@ export function Navbar() {
   const { user, logout, isLoading } = useAuth();
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur">
+    <header className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur">
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
         <div className="flex items-center gap-6">
-          <Link href="/" className="font-semibold">
+          <Link href="/" className="flex items-center gap-1.5 font-heading text-lg font-semibold text-primary">
+            <MoonStar className="size-4" strokeWidth={2.25} />
             Hal Holiday
           </Link>
           <nav className="hidden items-center gap-4 text-sm text-muted-foreground sm:flex">
@@ -21,11 +23,21 @@ export function Navbar() {
               href="/lieux"
               className={
                 pathname.startsWith('/lieux')
-                  ? 'text-foreground'
+                  ? 'font-medium text-foreground'
                   : 'hover:text-foreground'
               }
             >
               Lieux
+            </Link>
+            <Link
+              href="/sejour"
+              className={
+                pathname.startsWith('/sejour')
+                  ? 'font-medium text-foreground'
+                  : 'hover:text-foreground'
+              }
+            >
+              Prévoir mon séjour
             </Link>
           </nav>
         </div>

@@ -14,7 +14,13 @@ import type {
 } from './types';
 import { ApiError } from './types';
 
-const BASE = '/api';
+// Server Components run in Node and `fetch` there can't resolve a relative
+// URL, so hit the backend directly; the browser still goes through the
+// same-origin `/api` rewrite proxy (see next.config.ts).
+const BASE =
+  typeof window === 'undefined'
+    ? (process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000')
+    : '/api';
 
 async function request<T>(
   path: string,

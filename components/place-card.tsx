@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Landmark, Sparkles, UtensilsCrossed, type LucideIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import type { NearbyPlace, Place } from '@/lib/types';
@@ -7,6 +8,30 @@ const TYPE_LABELS: Record<string, string> = {
   restaurant: 'Restaurant',
   mosque: 'Mosquée',
   activity: 'Activité',
+};
+
+const TYPE_STYLE: Record<
+  string,
+  { icon: LucideIcon; bar: string; iconBg: string; iconFg: string }
+> = {
+  restaurant: {
+    icon: UtensilsCrossed,
+    bar: 'bg-terracotta',
+    iconBg: 'bg-terracotta/15',
+    iconFg: 'text-terracotta',
+  },
+  mosque: {
+    icon: Landmark,
+    bar: 'bg-primary',
+    iconBg: 'bg-primary/15',
+    iconFg: 'text-primary',
+  },
+  activity: {
+    icon: Sparkles,
+    bar: 'bg-gold',
+    iconBg: 'bg-gold/20',
+    iconFg: 'text-gold',
+  },
 };
 
 const HALAL_META: Record<
@@ -29,29 +54,41 @@ export function PlaceCard({ place }: { place: Place | NearbyPlace }) {
   const distanceM =
     'distance_m' in place ? parseFloat(place.distance_m) : null;
   const halalMeta = place.halal_level ? HALAL_META[place.halal_level] : null;
+  const typeStyle = TYPE_STYLE[place.type];
+  const TypeIcon = typeStyle?.icon;
 
   return (
     <Link href={`/lieux/${place.slug}`} className="block h-full">
-      <Card className="h-full transition-shadow hover:shadow-md">
-        <CardHeader className="pb-2">
-          <div className="flex items-start justify-between gap-2">
-            <h3 className="font-medium leading-tight">{place.name}</h3>
-            {distanceM !== null && (
-              <span className="shrink-0 text-xs text-muted-foreground">
-                {formatDistance(distanceM)}
-              </span>
+      <Card className="h-full overflow-hidden gap-0 pt-0 transition-shadow hover:shadow-md">
+        <div className={`h-1.5 ${typeStyle?.bar ?? 'bg-muted'}`} />
+        <CardHeader className="pt-4 pb-2">
+          <div className="flex items-start gap-3">
+            {TypeIcon && (
+              <div className={`flex size-9 shrink-0 items-center justify-center rounded-full ${typeStyle.iconBg}`}>
+                <TypeIcon className={`size-4 ${typeStyle.iconFg}`} strokeWidth={2} />
+              </div>
             )}
-          </div>
-          <div className="mt-1 flex flex-wrap gap-1.5">
-            <Badge variant="secondary">
-              {TYPE_LABELS[place.type] ?? place.type}
-            </Badge>
-            {halalMeta && (
-              <Badge variant={halalMeta.variant}>{halalMeta.label}</Badge>
-            )}
-            {place.prayer_room && (
-              <Badge variant="outline">Salle de prière</Badge>
-            )}
+            <div className="min-w-0 flex-1">
+              <div className="flex items-start justify-between gap-2">
+                <h3 className="font-medium leading-tight">{place.name}</h3>
+                {distanceM !== null && (
+                  <span className="shrink-0 text-xs text-muted-foreground">
+                    {formatDistance(distanceM)}
+                  </span>
+                )}
+              </div>
+              <div className="mt-1.5 flex flex-wrap gap-1.5">
+                <Badge variant="secondary">
+                  {TYPE_LABELS[place.type] ?? place.type}
+                </Badge>
+                {halalMeta && (
+                  <Badge variant={halalMeta.variant}>{halalMeta.label}</Badge>
+                )}
+                {place.prayer_room && (
+                  <Badge variant="outline">Salle de prière</Badge>
+                )}
+              </div>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="pt-0">

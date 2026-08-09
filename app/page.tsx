@@ -43,7 +43,7 @@ export default function HomePage() {
       placesApi.nearby({
         lat: coords!.lat,
         lng: coords!.lng,
-        radius: 2000,
+        radius: 20000,
         types: activeTypes.length > 0 ? activeTypes : undefined,
         minHalal,
         noAlcohol: noAlcohol || undefined,
@@ -75,8 +75,9 @@ export default function HomePage() {
     <div className="mx-auto max-w-5xl px-4 py-12">
       {/* Hero */}
       <div className="mb-12 text-center">
-        <h1 className="mb-3 text-4xl font-bold tracking-tight">
-          Découvrez les lieux halal à Paris
+        <h1 className="mb-3 text-4xl font-bold tracking-tight text-balance">
+          Découvrez les lieux halal à{' '}
+          <span className="text-primary">Paris</span>
         </h1>
         <p className="mb-8 text-lg text-muted-foreground">
           Restaurants, mosquées et activités sans alcool — certifiés et géolocalisés.
@@ -111,8 +112,8 @@ export default function HomePage() {
                 className={[
                   'rounded-full border px-3 py-1 text-sm transition-colors',
                   activeTypes.includes(value)
-                    ? 'border-foreground bg-foreground text-background'
-                    : 'border-border text-muted-foreground hover:border-foreground hover:text-foreground',
+                    ? 'border-primary bg-primary text-primary-foreground'
+                    : 'border-border text-muted-foreground hover:border-primary hover:text-primary',
                 ].join(' ')}
               >
                 {label}
@@ -126,7 +127,7 @@ export default function HomePage() {
             onChange={(e) =>
               setMinHalal(e.target.value ? parseInt(e.target.value) : undefined)
             }
-            className="h-8 rounded-full border border-border bg-transparent px-3 text-sm text-muted-foreground outline-none focus-visible:border-foreground"
+            className="h-8 rounded-full border border-border bg-transparent px-3 text-sm text-muted-foreground outline-none focus-visible:border-primary"
           >
             {HALAL_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>
@@ -141,7 +142,7 @@ export default function HomePage() {
               type="checkbox"
               checked={noAlcohol}
               onChange={(e) => setNoAlcohol(e.target.checked)}
-              className="rounded border-input"
+              className="rounded border-input accent-primary"
             />
             Sans alcool
           </label>
@@ -150,7 +151,7 @@ export default function HomePage() {
           {places && places.length > 0 && (
             <button
               onClick={() => setShowMap((v) => !v)}
-              className="ml-auto rounded-full border border-border px-3 py-1 text-sm text-muted-foreground hover:border-foreground hover:text-foreground transition-colors"
+              className="ml-auto rounded-full border border-border px-3 py-1 text-sm text-muted-foreground hover:border-primary hover:text-primary transition-colors"
             >
               {showMap ? 'Masquer la carte' : 'Voir la carte'}
             </button>
@@ -177,7 +178,7 @@ export default function HomePage() {
       {/* Résultats */}
       {places && places.length === 0 && (
         <p className="text-center text-muted-foreground">
-          Aucun lieu trouvé dans un rayon de 2 km avec ces filtres.
+          Aucun lieu trouvé dans un rayon de 20 km avec ces filtres.
         </p>
       )}
 

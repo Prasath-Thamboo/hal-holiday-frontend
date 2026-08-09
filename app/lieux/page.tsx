@@ -66,8 +66,8 @@ function LieuxContent() {
             className={[
               'rounded-full border px-3 py-1 text-sm transition-colors',
               rawTypes.includes(value)
-                ? 'border-foreground bg-foreground text-background'
-                : 'border-border text-muted-foreground hover:border-foreground hover:text-foreground',
+                ? 'border-primary bg-primary text-primary-foreground'
+                : 'border-border text-muted-foreground hover:border-primary hover:text-primary',
             ].join(' ')}
           >
             {label}
@@ -81,7 +81,7 @@ function LieuxContent() {
               sp.set('page', '1');
               router.push(`/lieux?${sp.toString()}`);
             }}
-            className="rounded-full border border-border px-3 py-1 text-sm text-muted-foreground hover:border-foreground hover:text-foreground transition-colors"
+            className="rounded-full border border-border px-3 py-1 text-sm text-muted-foreground hover:border-primary hover:text-primary transition-colors"
           >
             Tout afficher
           </button>

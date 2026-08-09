@@ -48,7 +48,7 @@ export default function AdminLayout({
                 href={href}
                 className={
                   pathname === href
-                    ? 'font-medium text-foreground'
+                    ? 'font-medium text-primary'
                     : 'text-muted-foreground hover:text-foreground'
                 }
               >

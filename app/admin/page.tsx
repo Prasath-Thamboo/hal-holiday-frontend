@@ -7,15 +7,15 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const STAT_CARDS = [
-  { key: 'total' as const, label: 'Total lieux' },
-  { key: 'published' as const, label: 'Publiés' },
-  { key: 'drafts' as const, label: 'Brouillons' },
+  { key: 'total' as const, label: 'Total lieux', color: 'text-foreground' },
+  { key: 'published' as const, label: 'Publiés', color: 'text-primary' },
+  { key: 'drafts' as const, label: 'Brouillons', color: 'text-terracotta' },
 ];
 
 const TYPE_CARDS = [
-  { key: 'restaurant' as const, label: 'Restaurants' },
-  { key: 'mosque' as const, label: 'Mosquées' },
-  { key: 'activity' as const, label: 'Activités' },
+  { key: 'restaurant' as const, label: 'Restaurants', color: 'text-terracotta' },
+  { key: 'mosque' as const, label: 'Mosquées', color: 'text-primary' },
+  { key: 'activity' as const, label: 'Activités', color: 'text-gold' },
 ];
 
 export default function AdminDashboardPage() {
@@ -39,7 +39,7 @@ export default function AdminDashboardPage() {
             Vue globale
           </h3>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            {STAT_CARDS.map(({ key, label }) =>
+            {STAT_CARDS.map(({ key, label, color }) =>
               isLoading ? (
                 <Skeleton key={key} className="h-24 rounded-xl" />
               ) : (
@@ -48,7 +48,7 @@ export default function AdminDashboardPage() {
                     <p className="text-sm text-muted-foreground">{label}</p>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-3xl font-bold">{data?.[key] ?? '—'}</p>
+                    <p className={`text-3xl font-bold ${color}`}>{data?.[key] ?? '—'}</p>
                   </CardContent>
                 </Card>
               ),
@@ -62,7 +62,7 @@ export default function AdminDashboardPage() {
             Par type
           </h3>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            {TYPE_CARDS.map(({ key, label }) =>
+            {TYPE_CARDS.map(({ key, label, color }) =>
               isLoading ? (
                 <Skeleton key={key} className="h-24 rounded-xl" />
               ) : (
@@ -71,7 +71,7 @@ export default function AdminDashboardPage() {
                     <p className="text-sm text-muted-foreground">{label}</p>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-3xl font-bold">{data?.byType[key] ?? '—'}</p>
+                    <p className={`text-3xl font-bold ${color}`}>{data?.byType[key] ?? '—'}</p>
                   </CardContent>
                 </Card>
               ),

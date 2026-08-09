@@ -1,10 +1,15 @@
 import type { Metadata } from 'next';
-import { Geist } from 'next/font/google';
+import { Geist, Fraunces } from 'next/font/google';
 import './globals.css';
 import { Navbar } from '@/components/navbar';
 import { Providers } from '@/components/providers';
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-geist-sans' });
+const fraunces = Fraunces({
+  subsets: ['latin'],
+  variable: '--font-serif-display',
+  style: ['normal', 'italic'],
+});
 
 export const metadata: Metadata = {
   title: 'Hal Holiday — Lieux halal à Paris',
@@ -18,7 +23,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr" className={geist.variable}>
+    <html lang="fr" className={`${geist.variable} ${fraunces.variable}`}>
       <body className="min-h-dvh flex flex-col bg-background text-foreground antialiased">
         <Providers>
           <Navbar />
