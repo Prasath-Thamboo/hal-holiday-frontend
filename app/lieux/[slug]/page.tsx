@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { ArrowLeft, Landmark, MapPin, Navigation, Sparkles, UtensilsCrossed, type LucideIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { FavoriteButton } from '@/components/favorite-button';
 import { placesApi } from '@/lib/api';
 import { ApiError } from '@/lib/types';
 
@@ -93,7 +94,13 @@ export default async function PlaceDetailPage({ params }: Props) {
               <Badge variant="destructive">Sert de l&apos;alcool</Badge>
             )}
           </div>
-          <h1 className="text-3xl font-bold tracking-tight">{place.name}</h1>
+          <div className="flex items-start justify-between gap-3">
+            <h1 className="text-3xl font-bold tracking-tight">{place.name}</h1>
+            <FavoriteButton
+              placeId={place.id}
+              className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border transition-colors hover:bg-muted disabled:opacity-60"
+            />
+          </div>
           <div className="mt-1.5 flex items-center gap-1.5 text-muted-foreground">
             <MapPin className="size-3.5 shrink-0" />
             <p>{place.address}</p>

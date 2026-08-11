@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Landmark, Sparkles, UtensilsCrossed, type LucideIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { FavoriteButton } from '@/components/favorite-button';
 import type { NearbyPlace, Place } from '@/lib/types';
 
 const TYPE_LABELS: Record<string, string> = {
@@ -58,7 +59,10 @@ export function PlaceCard({ place }: { place: Place | NearbyPlace }) {
   const TypeIcon = typeStyle?.icon;
 
   return (
-    <Link href={`/lieux/${place.slug}`} className="block h-full">
+    <Link href={`/lieux/${place.slug}`} className="relative block h-full">
+      <div className="absolute right-2 top-3 z-10">
+        <FavoriteButton placeId={place.id} />
+      </div>
       <Card className="h-full overflow-hidden gap-0 pt-0 transition-shadow hover:shadow-md">
         <div className={`h-1.5 ${typeStyle?.bar ?? 'bg-muted'}`} />
         <CardHeader className="pt-4 pb-2">
@@ -69,7 +73,7 @@ export function PlaceCard({ place }: { place: Place | NearbyPlace }) {
               </div>
             )}
             <div className="min-w-0 flex-1">
-              <div className="flex items-start justify-between gap-2">
+              <div className="flex items-start justify-between gap-2 pr-8">
                 <h3 className="font-medium leading-tight">{place.name}</h3>
                 {distanceM !== null && (
                   <span className="shrink-0 text-xs text-muted-foreground">

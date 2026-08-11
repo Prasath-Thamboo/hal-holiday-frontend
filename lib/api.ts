@@ -86,6 +86,20 @@ export const placesApi = {
     request<void>(`/places/${id}`, { method: 'DELETE', token }),
 };
 
+// ── Favorites ─────────────────────────────────────────────────────────────────
+
+export const favoritesApi = {
+  list: (token: string) => request<Place[]>('/favorites', { token }),
+
+  ids: (token: string) => request<string[]>('/favorites/ids', { token }),
+
+  add: (placeId: string, token: string) =>
+    request<void>(`/favorites/${placeId}`, { method: 'POST', token }),
+
+  remove: (placeId: string, token: string) =>
+    request<void>(`/favorites/${placeId}`, { method: 'DELETE', token }),
+};
+
 // ── Users ─────────────────────────────────────────────────────────────────────
 
 export const usersApi = {

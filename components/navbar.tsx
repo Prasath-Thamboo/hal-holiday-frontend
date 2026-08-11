@@ -39,6 +39,18 @@ export function Navbar() {
             >
               Prévoir mon séjour
             </Link>
+            {user && (
+              <Link
+                href="/favoris"
+                className={
+                  pathname.startsWith('/favoris')
+                    ? 'font-medium text-foreground'
+                    : 'hover:text-foreground'
+                }
+              >
+                Favoris
+              </Link>
+            )}
           </nav>
         </div>
 
