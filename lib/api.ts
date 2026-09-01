@@ -10,6 +10,7 @@ import type {
   Place,
   PlaceStats,
   PlaceType,
+  UpdatePreferencesPayload,
   UserRole,
 } from './types';
 import { ApiError } from './types';
@@ -124,13 +125,55 @@ export const usersApi = {
     }),
 };
 
+// ── Compte (utilisateur connecté) ──────────────────────────────────────────────
+
+export const usersMeApi = {
+  updateEmail: (newEmail: string, password: string, token: string) =>
+    request<AuthUser>('/users/me/email', {
+      method: 'PATCH',
+      body: JSON.stringify({ newEmail, password }),
+      token,
+    }),
+
+  updatePassword: (currentPassword: string, newPassword: string, token: string) =>
+    request<void>('/users/me/password', {
+      method: 'PATCH',
+      body: JSON.stringify({ currentPassword, newPassword }),
+      token,
+    }),
+
+  updatePhone: (phoneNumber: string | null, token: string) =>
+    request<AuthUser>('/users/me/phone', {
+      method: 'PATCH',
+      body: JSON.stringify({ phoneNumber }),
+      token,
+    }),
+
+  updatePreferences: (data: UpdatePreferencesPayload, token: string) =>
+    request<AuthUser>('/users/me/preferences', {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+      token,
+    }),
+
+  exportData: (token: string) =>
+    request<Record<string, unknown>>('/users/me/export', { token }),
+
+  deleteAccount: (password: string, token: string) =>
+    request<void>('/users/me', {
+      method: 'DELETE',
+      body: JSON.stringify({ password }),
+      token,
+    }),
+};
+
 // ── Auth ─────────────────────────────────────────────────────────────────────
 
 export const authApi = {
-  register: (email: string, password: string) =>
+  register: (email: string, password: string, acceptedTerms: boolean) =>
     request<AuthTokens>('/auth/register', {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, acceptedTerms }),
     }),
 
   login: (email: string, password: string) =>

@@ -20,8 +20,9 @@ interface AuthState {
 
 interface AuthContextValue extends AuthState {
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string, acceptedTerms: boolean) => Promise<void>;
   logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -66,8 +67,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const register = useCallback(
-    async (email: string, password: string) => {
-      const tokens = await authApi.register(email, password);
+    async (email: string, password: string, acceptedTerms: boolean) => {
+      const tokens = await authApi.register(email, password, acceptedTerms);
       await applyTokens(tokens.access_token, tokens.refresh_token);
     },
     [applyTokens],
@@ -82,8 +83,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setState({ user: null, accessToken: null, isLoading: false });
   }, []);
 
+  // Recharge le profil (utilisé après une mise à jour du compte/des préférences).
+  const refreshUser = useCallback(async () => {
+    setState((s) => {
+      if (!s.accessToken) return s;
+      authApi.me(s.accessToken).then((user) => setState((s2) => ({ ...s2, user })));
+      return s;
+    });
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ ...state, login, logout, register }}>
+    <AuthContext.Provider value={{ ...state, login, logout, register, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

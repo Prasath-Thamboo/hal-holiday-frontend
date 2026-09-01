@@ -36,15 +36,34 @@ export interface PaginatedResult<T> {
   };
 }
 
+export interface NotificationPreferences {
+  promos: boolean;
+  planning_reminders: boolean;
+  prayer_times: boolean;
+}
+
 export interface AuthUser {
   id: string;
   email: string;
   role: UserRole;
+  phoneNumber: string | null;
+  language: string;
+  halalStrictnessPreference: number | null;
+  notificationPreferences: NotificationPreferences;
+  acceptedTermsAt: string | null;
+  acceptedPrivacyPolicyAt: string | null;
+  created_at: string;
 }
 
 export interface AuthTokens {
   access_token: string;
   refresh_token: string;
+}
+
+export interface UpdatePreferencesPayload {
+  language?: string;
+  halalStrictnessPreference?: number;
+  notificationPreferences?: Partial<NotificationPreferences>;
 }
 
 export interface NearbyQuery {

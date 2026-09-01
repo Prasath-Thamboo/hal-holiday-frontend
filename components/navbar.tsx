@@ -51,6 +51,18 @@ export function Navbar() {
                 Favoris
               </Link>
             )}
+            {user && (
+              <Link
+                href="/profil"
+                className={
+                  pathname.startsWith('/profil')
+                    ? 'font-medium text-foreground'
+                    : 'hover:text-foreground'
+                }
+              >
+                Profil
+              </Link>
+            )}
           </nav>
         </div>
 
