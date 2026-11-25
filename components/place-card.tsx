@@ -3,6 +3,7 @@ import { Landmark, Sparkles, UtensilsCrossed, type LucideIcon } from 'lucide-rea
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { FavoriteButton } from '@/components/favorite-button';
+import { isOpenAt } from '@/lib/opening-hours';
 import type { NearbyPlace, Place } from '@/lib/types';
 
 const TYPE_LABELS: Record<string, string> = {
@@ -90,6 +91,11 @@ export function PlaceCard({ place }: { place: Place | NearbyPlace }) {
                 )}
                 {place.prayer_room && (
                   <Badge variant="outline">Salle de prière</Badge>
+                )}
+                {place.opening_hours && (
+                  <Badge variant={isOpenAt(place.opening_hours) ? 'default' : 'outline'}>
+                    {isOpenAt(place.opening_hours) ? 'Ouvert' : 'Fermé'}
+                  </Badge>
                 )}
               </div>
             </div>

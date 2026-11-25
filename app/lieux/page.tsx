@@ -7,31 +7,52 @@ import { PlaceCard } from '@/components/place-card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { placesApi } from '@/lib/api';
-import type { PlaceType } from '@/lib/types';
+import type { PlaceCategory, PlaceType } from '@/lib/types';
 
 const LIMIT = 18;
 
-const TYPE_OPTIONS: { value: PlaceType; label: string }[] = [
-  { value: 'restaurant', label: 'Restaurants' },
+type SubType = 'mosque' | 'restaurant' | 'touristique' | 'divertissement';
+
+const SUBTYPE_OPTIONS: { value: SubType; label: string }[] = [
   { value: 'mosque', label: 'Mosquées' },
-  { value: 'activity', label: 'Activités' },
+  { value: 'restaurant', label: 'Restaurants' },
+  { value: 'touristique', label: 'Lieux touristiques' },
+  { value: 'divertissement', label: 'Lieux de divertissement' },
 ];
+
+/** Traduit les sous-types cochés en paramètres `types` + `categories`. */
+function toQuery(subtypes: SubType[]): {
+  types?: PlaceType[];
+  categories?: PlaceCategory[];
+} {
+  if (subtypes.length === 0) return {};
+  const types = new Set<PlaceType>();
+  const categories = new Set<PlaceCategory>();
+  for (const s of subtypes) {
+    if (s === 'mosque' || s === 'restaurant') types.add(s);
+    else {
+      types.add('activity');
+      categories.add(s);
+    }
+  }
+  return {
+    types: [...types],
+    categories: categories.size ? [...categories] : undefined,
+  };
+}
 
 function LieuxContent() {
   const router = useRouter();
   const params = useSearchParams();
   const page = parseInt(params.get('page') ?? '1', 10);
-  const rawTypes = params.getAll('types') as PlaceType[];
+  const selected = params.getAll('sub') as SubType[];
+
+  const { types, categories } = toQuery(selected);
 
   const { data, isLoading } = useQuery({
-    queryKey: ['places', page, rawTypes],
+    queryKey: ['places', page, selected],
     queryFn: () =>
-      placesApi.list({
-        page,
-        limit: LIMIT,
-        published: true,
-        types: rawTypes.length > 0 ? rawTypes : undefined,
-      }),
+      placesApi.list({ page, limit: LIMIT, published: true, types, categories }),
     staleTime: 60_000,
   });
 
@@ -44,28 +65,28 @@ function LieuxContent() {
     [params, router],
   );
 
-  function toggleType(type: PlaceType) {
+  function toggleSub(value: SubType) {
     const sp = new URLSearchParams(params.toString());
-    sp.delete('types');
-    const next = rawTypes.includes(type)
-      ? rawTypes.filter((t) => t !== type)
-      : [...rawTypes, type];
-    next.forEach((t) => sp.append('types', t));
+    sp.delete('sub');
+    const next = selected.includes(value)
+      ? selected.filter((t) => t !== value)
+      : [...selected, value];
+    next.forEach((t) => sp.append('sub', t));
     sp.set('page', '1');
     router.push(`/lieux?${sp.toString()}`);
   }
 
   return (
     <>
-      {/* Filtres type */}
+      {/* Filtres sous-type */}
       <div className="mb-6 flex flex-wrap gap-2">
-        {TYPE_OPTIONS.map(({ value, label }) => (
+        {SUBTYPE_OPTIONS.map(({ value, label }) => (
           <button
             key={value}
-            onClick={() => toggleType(value)}
+            onClick={() => toggleSub(value)}
             className={[
               'rounded-full border px-3 py-1 text-sm transition-colors',
-              rawTypes.includes(value)
+              selected.includes(value)
                 ? 'border-primary bg-primary text-primary-foreground'
                 : 'border-border text-muted-foreground hover:border-primary hover:text-primary',
             ].join(' ')}
@@ -73,11 +94,11 @@ function LieuxContent() {
             {label}
           </button>
         ))}
-        {rawTypes.length > 0 && (
+        {selected.length > 0 && (
           <button
             onClick={() => {
               const sp = new URLSearchParams(params.toString());
-              sp.delete('types');
+              sp.delete('sub');
               sp.set('page', '1');
               router.push(`/lieux?${sp.toString()}`);
             }}

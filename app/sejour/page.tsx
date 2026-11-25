@@ -1,106 +1,178 @@
-import type { Metadata } from 'next';
+'use client';
+
+import { useState } from 'react';
 import Link from 'next/link';
-import { Landmark, Sparkles, UtensilsCrossed, type LucideIcon } from 'lucide-react';
-import { PlaceCard } from '@/components/place-card';
-import { placesApi } from '@/lib/api';
-import type { PlaceType } from '@/lib/types';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { CalendarDays, Plus } from 'lucide-react';
+import { useAuth } from '@/lib/auth-context';
+import { useI18n } from '@/lib/i18n';
+import { tripsApi } from '@/lib/api';
+import { ApiError } from '@/lib/types';
+import { dayCount, formatDateRange } from '@/lib/trip';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
 
-export const metadata: Metadata = {
-  title: 'Prévoir mon séjour — Hal Holiday',
-  description: 'Un guide rapide pour organiser votre séjour halal à Paris : où manger, où prier, et quoi visiter.',
-};
+function todayISO(offsetDays = 0): string {
+  const d = new Date();
+  d.setDate(d.getDate() + offsetDays);
+  return d.toISOString().slice(0, 10);
+}
 
-const SECTIONS: {
-  type: PlaceType;
-  title: string;
-  icon: LucideIcon;
-  iconBg: string;
-  iconFg: string;
-}[] = [
-  { type: 'restaurant', title: 'Où manger', icon: UtensilsCrossed, iconBg: 'bg-terracotta/15', iconFg: 'text-terracotta' },
-  { type: 'mosque', title: 'Où prier', icon: Landmark, iconBg: 'bg-primary/15', iconFg: 'text-primary' },
-  { type: 'activity', title: 'Quoi visiter', icon: Sparkles, iconBg: 'bg-gold/20', iconFg: 'text-gold' },
-];
+export default function SejourPage() {
+  const { user, accessToken, isLoading } = useAuth();
+  const { t, locale } = useI18n();
+  const qc = useQueryClient();
+  const [showForm, setShowForm] = useState(false);
 
-const HALAL_LEVELS = [
-  { level: 1, label: 'Déclaratif', description: "Le lieu se déclare halal sans certification tierce." },
-  { level: 2, label: 'Validé mosquée', description: 'Recommandé par une mosquée locale.' },
-  { level: 3, label: 'Certifié', description: 'Certifié par un organisme de certification halal agréé.' },
-  { level: 4, label: '100% Halal', description: "L'établissement est entièrement halal, sans exception." },
-];
+  const { data: trips, isLoading: loadingTrips } = useQuery({
+    queryKey: ['trips'],
+    queryFn: () => tripsApi.list(accessToken!),
+    enabled: !!accessToken,
+  });
 
-const SECTION_LIMIT = 6;
+  const create = useMutation({
+    mutationFn: (payload: { title: string; startDate: string; endDate: string }) =>
+      tripsApi.create(payload, accessToken!),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['trips'] });
+      setShowForm(false);
+      toast.success(t('planning.new_trip'));
+    },
+    onError: (err) =>
+      toast.error(err instanceof ApiError ? err.message : 'Erreur'),
+  });
 
-export default async function SejourPage() {
-  const results = await Promise.all(
-    SECTIONS.map((section) => placesApi.list({ types: [section.type], limit: SECTION_LIMIT, published: true })),
-  );
+  if (isLoading) return null;
+
+  if (!user) {
+    return (
+      <div className="mx-auto max-w-2xl px-4 py-16 text-center">
+        <h1 className="mb-3 text-2xl font-bold tracking-tight">{t('planning.title')}</h1>
+        <p className="mb-6 text-muted-foreground">{t('planning.sign_in')}</p>
+        <Link href="/auth/connexion">
+          <Button>{t('nav.login')}</Button>
+        </Link>
+      </div>
+    );
+  }
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-12">
-      <div className="mb-10 text-center">
-        <h1 className="mb-3 text-4xl font-bold tracking-tight">Prévoir mon séjour</h1>
-        <p className="mx-auto max-w-xl text-lg text-muted-foreground">
-          Un guide rapide pour organiser votre séjour halal à Paris : où manger, où prier, et quoi visiter.
-        </p>
+    <div className="mx-auto max-w-3xl px-4 py-8">
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">{t('planning.title')}</h1>
+          <p className="text-sm text-muted-foreground">{t('planning.subtitle')}</p>
+        </div>
+        {!showForm && (
+          <Button size="sm" onClick={() => setShowForm(true)} className="gap-1.5">
+            <Plus className="size-3.5" />
+            {t('planning.new_trip')}
+          </Button>
+        )}
       </div>
 
-      {/* Légende des niveaux halal */}
-      <div className="mb-12 rounded-xl border border-border bg-card p-5">
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-          Comprendre les niveaux halal
-        </h2>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          {HALAL_LEVELS.map(({ level, label, description }) => (
-            <div key={level} className="flex items-start gap-3">
-              <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-bold text-primary">
-                {level}
-              </span>
-              <div>
-                <p className="text-sm font-medium">{label}</p>
-                <p className="text-sm text-muted-foreground">{description}</p>
-              </div>
+      {showForm && (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            const fd = new FormData(e.currentTarget);
+            create.mutate({
+              title: String(fd.get('title') ?? '').trim(),
+              startDate: String(fd.get('startDate')),
+              endDate: String(fd.get('endDate')),
+            });
+          }}
+          className="mb-6 space-y-4 rounded-xl border border-border bg-card p-4"
+        >
+          <div className="space-y-1.5">
+            <Label htmlFor="title">{t('planning.trip_title')}</Label>
+            <Input id="title" name="title" required maxLength={120} autoFocus />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="startDate">{t('planning.start_date')}</Label>
+              <Input
+                id="startDate"
+                name="startDate"
+                type="date"
+                required
+                defaultValue={todayISO()}
+              />
             </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="endDate">{t('planning.end_date')}</Label>
+              <Input
+                id="endDate"
+                name="endDate"
+                type="date"
+                required
+                defaultValue={todayISO(2)}
+              />
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button type="submit" size="sm" disabled={create.isPending}>
+              {t('planning.create')}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowForm(false)}
+            >
+              {t('planning.cancel')}
+            </Button>
+          </div>
+        </form>
+      )}
+
+      {loadingTrips && (
+        <div className="space-y-3">
+          {[0, 1].map((i) => (
+            <Skeleton key={i} className="h-20 rounded-xl" />
           ))}
         </div>
-      </div>
+      )}
 
-      {/* Sections par type */}
-      <div className="space-y-12">
-        {SECTIONS.map((section, i) => {
-          const { data, meta } = results[i];
-          const Icon = section.icon;
-          return (
-            <div key={section.type}>
-              <div className="mb-4 flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <div className={`flex size-9 items-center justify-center rounded-full ${section.iconBg}`}>
-                    <Icon className={`size-4 ${section.iconFg}`} strokeWidth={2} />
-                  </div>
-                  <h2 className="text-xl font-bold tracking-tight">{section.title}</h2>
-                </div>
-                {meta.total > SECTION_LIMIT && (
-                  <Link
-                    href={`/lieux?types=${section.type}`}
-                    className="text-sm text-muted-foreground hover:text-primary"
-                  >
-                    Voir tout ({meta.total})
-                  </Link>
-                )}
+      {trips && trips.length === 0 && !showForm && (
+        <p className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+          {t('planning.no_trips')}
+        </p>
+      )}
+
+      <div className="space-y-3">
+        {trips?.map((trip) => (
+          <Link
+            key={trip.id}
+            href={`/sejour/${trip.id}`}
+            className="block rounded-xl border border-border bg-card p-4 transition-colors hover:border-primary"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <CalendarDays className="size-5" />
               </div>
-
-              {data.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Aucun lieu publié pour le moment.</p>
-              ) : (
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {data.map((place) => (
-                    <PlaceCard key={place.id} place={place} />
-                  ))}
-                </div>
-              )}
+              <div className="min-w-0 flex-1">
+                <p className="truncate font-medium">{trip.title}</p>
+                <p className="text-sm text-muted-foreground">
+                  {formatDateRange(trip.startDate, trip.endDate, locale)} ·{' '}
+                  {t(
+                    dayCount(trip.startDate, trip.endDate) > 1
+                      ? 'planning.days_plural'
+                      : 'planning.days',
+                    { n: dayCount(trip.startDate, trip.endDate) },
+                  )}{' '}
+                  ·{' '}
+                  {t(trip.itemCount > 1 ? 'planning.places_plural' : 'planning.places', {
+                    n: trip.itemCount,
+                  })}
+                </p>
+              </div>
             </div>
-          );
-        })}
+          </Link>
+        ))}
       </div>
     </div>
   );

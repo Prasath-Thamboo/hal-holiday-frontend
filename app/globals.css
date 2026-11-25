@@ -146,3 +146,13 @@
     @apply font-heading;
   }
 }
+
+/* Leaflet : les divIcon personnalisés ne doivent pas hériter du fond blanc */
+.leaflet-div-icon.hh-marker,
+.leaflet-div-icon.hh-user-marker {
+  background: transparent;
+  border: 0;
+}
+.leaflet-container {
+  font: inherit;
+}

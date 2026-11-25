@@ -1,6 +1,36 @@
 export type PlaceType = 'restaurant' | 'mosque' | 'activity';
 
+/** Sous-catégorie d'un lieu `activity`. `null` pour les autres types. */
+export type PlaceCategory = 'touristique' | 'divertissement';
+
 export type UserRole = 'admin' | 'user';
+
+export type WeekDay = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
+
+export const WEEK_DAYS: readonly WeekDay[] = [
+  'mon',
+  'tue',
+  'wed',
+  'thu',
+  'fri',
+  'sat',
+  'sun',
+];
+
+export interface TimeSlot {
+  open: string;
+  close: string;
+}
+
+export interface OpeningHoursException {
+  date: string;
+  closed: boolean;
+  slots?: TimeSlot[];
+}
+
+export type OpeningHours = Partial<Record<WeekDay, TimeSlot[]>> & {
+  exceptions?: OpeningHoursException[];
+};
 
 export interface Place {
   id: string;
@@ -11,6 +41,8 @@ export interface Place {
   address: string;
   arrondissement: number;
   city: string;
+  category: PlaceCategory | null;
+  opening_hours: OpeningHours | null;
   halal_level: number | null;
   serves_alcohol: boolean;
   prayer_room: boolean;
@@ -66,13 +98,132 @@ export interface UpdatePreferencesPayload {
   notificationPreferences?: Partial<NotificationPreferences>;
 }
 
+// ── Planning (Phase 2) ────────────────────────────────────────────────────
+
+export type TripSlot = 'matin' | 'midi' | 'apres_midi' | 'soir';
+
+export const TRIP_SLOTS: readonly TripSlot[] = ['matin', 'midi', 'apres_midi', 'soir'];
+
+export interface Trip {
+  id: string;
+  userId: string;
+  title: string;
+  startDate: string;
+  endDate: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TripSummary extends Trip {
+  dayCount: number;
+  itemCount: number;
+}
+
+export interface TripItemPlace {
+  id: string;
+  name: string;
+  slug: string;
+  type: PlaceType;
+  address: string;
+  category: PlaceCategory | null;
+  latitude: number;
+  longitude: number;
+}
+
+export interface TripItem {
+  id: string;
+  tripId: string;
+  date: string;
+  slot: TripSlot;
+  time: string | null;
+  position: number;
+  note: string | null;
+  place: TripItemPlace;
+}
+
+export interface TripDay {
+  date: string;
+  items: TripItem[];
+}
+
+export interface TripDetail {
+  trip: Trip;
+  days: TripDay[];
+}
+
+export interface CreateTripPayload {
+  title: string;
+  startDate: string;
+  endDate: string;
+}
+
+export interface CreateTripItemPayload {
+  placeId: string;
+  date: string;
+  slot: TripSlot;
+  time?: string;
+  note?: string;
+}
+
+export interface UpdateTripItemPayload {
+  date?: string;
+  slot?: TripSlot;
+  time?: string;
+  note?: string;
+  position?: number;
+}
+
+// ── Promotions (Phase 3) ──────────────────────────────────────────────────
+
+export interface PromotionPlaceInfo {
+  id: string;
+  name: string;
+  slug: string;
+  type: PlaceType;
+  arrondissement: number;
+  address: string;
+}
+
+export interface Promotion {
+  id: string;
+  placeId: string;
+  title: string;
+  description: string | null;
+  imageUrl: string | null;
+  startDate: string;
+  endDate: string;
+  code: string | null;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+  place: PromotionPlaceInfo;
+}
+
+export interface PaginatedPromotions {
+  data: Promotion[];
+  meta: { total: number; page: number; limit: number; totalPages: number };
+}
+
+export interface CreatePromotionPayload {
+  placeId: string;
+  title: string;
+  description?: string;
+  imageUrl?: string;
+  startDate: string;
+  endDate: string;
+  code?: string;
+  active?: boolean;
+}
+
 export interface NearbyQuery {
   lat: number;
   lng: number;
   radius?: number;
   types?: PlaceType[];
+  categories?: PlaceCategory[];
   minHalal?: number;
   noAlcohol?: boolean;
+  search?: string;
 }
 
 export interface CreatePlacePayload {
@@ -85,6 +236,8 @@ export interface CreatePlacePayload {
   city?: string;
   latitude: number;
   longitude: number;
+  category?: PlaceCategory | null;
+  opening_hours?: OpeningHours | null;
   halal_level?: number;
   serves_alcohol?: boolean;
   prayer_room?: boolean;

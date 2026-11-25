@@ -1,9 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import type { CreatePlacePayload, Place } from '@/lib/types';
+import { OpeningHoursEditor } from '@/components/opening-hours-editor';
+import type { CreatePlacePayload, OpeningHours, Place, PlaceCategory } from '@/lib/types';
 
 export interface PlaceFormValues extends CreatePlacePayload {}
 
@@ -40,13 +42,19 @@ export function PlaceForm({
   loading,
   submitLabel = 'Enregistrer',
 }: PlaceFormProps) {
+  const [type, setType] = useState<PlaceFormValues['type']>(d?.type ?? 'restaurant');
+  const [category, setCategory] = useState<PlaceCategory | ''>(d?.category ?? '');
+  const [openingHours, setOpeningHours] = useState<OpeningHours | null>(
+    d?.opening_hours ?? null,
+  );
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
     const get = (k: string) => (fd.get(k) as string) ?? '';
 
     const values: PlaceFormValues = {
-      type: get('type') as PlaceFormValues['type'],
+      type,
       name: get('name'),
       slug: get('slug'),
       description: get('description') || undefined,
@@ -55,6 +63,8 @@ export function PlaceForm({
       city: get('city') || 'Paris',
       latitude: parseFloat(get('latitude')),
       longitude: parseFloat(get('longitude')),
+      category: type === 'activity' && category ? category : null,
+      opening_hours: openingHours,
       halal_level: get('halal_level') ? parseInt(get('halal_level'), 10) : undefined,
       serves_alcohol: get('serves_alcohol') === 'true',
       prayer_room: get('prayer_room') === 'true',
@@ -75,7 +85,8 @@ export function PlaceForm({
             id="type"
             name="type"
             required
-            defaultValue={d?.type ?? 'restaurant'}
+            value={type}
+            onChange={(e) => setType(e.target.value as PlaceFormValues['type'])}
             className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
           >
             <option value="restaurant">Restaurant</option>
@@ -83,6 +94,27 @@ export function PlaceForm({
             <option value="activity">Activité</option>
           </select>
         </Field>
+
+        {/* Sous-catégorie (activités uniquement) */}
+        {type === 'activity' && (
+          <Field
+            id="category"
+            label="Sous-catégorie"
+            hint="Sépare les lieux touristiques des lieux de divertissement sur la carte"
+          >
+            <select
+              id="category"
+              name="category"
+              value={category}
+              onChange={(e) => setCategory(e.target.value as PlaceCategory | '')}
+              className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+            >
+              <option value="">Non renseignée</option>
+              <option value="touristique">Touristique</option>
+              <option value="divertissement">Divertissement</option>
+            </select>
+          </Field>
+        )}
 
         {/* Halal level */}
         <Field id="halal_level" label="Niveau halal">
@@ -197,6 +229,12 @@ export function PlaceForm({
           className="w-full rounded-lg border border-input bg-transparent px-2.5 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 resize-none"
         />
       </Field>
+
+      {/* Horaires d'ouverture */}
+      <div className="space-y-1.5">
+        <Label>Horaires d&apos;ouverture</Label>
+        <OpeningHoursEditor value={openingHours} onChange={setOpeningHours} />
+      </div>
 
       {/* Toggles */}
       <div className="flex flex-wrap gap-6 text-sm">

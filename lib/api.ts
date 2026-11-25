@@ -3,14 +3,25 @@ import type {
   AuthTokens,
   AuthUser,
   CreatePlacePayload,
+  CreatePromotionPayload,
+  CreateTripItemPayload,
+  CreateTripPayload,
   CreateUserPayload,
   NearbyPlace,
   NearbyQuery,
+  PaginatedPromotions,
   PaginatedResult,
   Place,
+  PlaceCategory,
   PlaceStats,
   PlaceType,
+  Promotion,
+  Trip,
+  TripDetail,
+  TripItem,
+  TripSummary,
   UpdatePreferencesPayload,
+  UpdateTripItemPayload,
   UserRole,
 } from './types';
 import { ApiError } from './types';
@@ -62,8 +73,14 @@ function buildQuery(params: Record<string, unknown>): string {
 // ── Places ────────────────────────────────────────────────────────────────────
 
 export const placesApi = {
-  list: (params?: { page?: number; limit?: number; published?: boolean; types?: PlaceType[] }) =>
-    request<PaginatedResult<Place>>(`/places?${buildQuery(params ?? {})}`),
+  list: (params?: {
+    page?: number;
+    limit?: number;
+    published?: boolean;
+    types?: PlaceType[];
+    categories?: PlaceCategory[];
+    search?: string;
+  }) => request<PaginatedResult<Place>>(`/places?${buildQuery(params ?? {})}`),
 
   stats: (token: string) =>
     request<PlaceStats>('/places/stats', { token }),
@@ -99,6 +116,79 @@ export const favoritesApi = {
 
   remove: (placeId: string, token: string) =>
     request<void>(`/favorites/${placeId}`, { method: 'DELETE', token }),
+};
+
+// ── Promotions ───────────────────────────────────────────────────────────────
+
+export const promotionsApi = {
+  list: (params?: { page?: number; limit?: number; arrondissement?: number; type?: PlaceType }) =>
+    request<PaginatedPromotions>(`/promotions?${buildQuery(params ?? {})}`),
+
+  get: (id: string) => request<Promotion>(`/promotions/${id}`),
+
+  adminList: (token: string, params?: { page?: number; limit?: number }) =>
+    request<PaginatedPromotions>(`/promotions/admin/list?${buildQuery(params ?? {})}`, {
+      token,
+    }),
+
+  create: (data: CreatePromotionPayload, token: string) =>
+    request<Promotion>('/promotions', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      token,
+    }),
+
+  update: (id: string, data: Partial<CreatePromotionPayload>, token: string) =>
+    request<Promotion>(`/promotions/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+      token,
+    }),
+
+  remove: (id: string, token: string) =>
+    request<void>(`/promotions/${id}`, { method: 'DELETE', token }),
+
+  toggleActive: (id: string, token: string) =>
+    request<Promotion>(`/promotions/${id}/toggle-active`, { method: 'PATCH', token }),
+};
+
+// ── Trips (planning) ─────────────────────────────────────────────────────────
+
+export const tripsApi = {
+  list: (token: string) => request<TripSummary[]>('/trips', { token }),
+
+  get: (id: string, token: string) => request<TripDetail>(`/trips/${id}`, { token }),
+
+  create: (data: CreateTripPayload, token: string) =>
+    request<Trip>('/trips', { method: 'POST', body: JSON.stringify(data), token }),
+
+  update: (id: string, data: Partial<CreateTripPayload>, token: string) =>
+    request<Trip>(`/trips/${id}`, { method: 'PATCH', body: JSON.stringify(data), token }),
+
+  remove: (id: string, token: string) =>
+    request<void>(`/trips/${id}`, { method: 'DELETE', token }),
+
+  addItem: (tripId: string, data: CreateTripItemPayload, token: string) =>
+    request<TripItem>(`/trips/${tripId}/items`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+      token,
+    }),
+
+  updateItem: (
+    tripId: string,
+    itemId: string,
+    data: UpdateTripItemPayload,
+    token: string,
+  ) =>
+    request<TripItem>(`/trips/${tripId}/items/${itemId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+      token,
+    }),
+
+  removeItem: (tripId: string, itemId: string, token: string) =>
+    request<void>(`/trips/${tripId}/items/${itemId}`, { method: 'DELETE', token }),
 };
 
 // ── Users ─────────────────────────────────────────────────────────────────────

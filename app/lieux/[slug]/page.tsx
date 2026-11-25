@@ -7,6 +7,7 @@ import { Separator } from '@/components/ui/separator';
 import { FavoriteButton } from '@/components/favorite-button';
 import { placesApi } from '@/lib/api';
 import { ApiError } from '@/lib/types';
+import { formatSlots, todaySummary, weekRows } from '@/lib/opening-hours';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -42,6 +43,11 @@ const HALAL_LABELS: Record<number, string> = {
   2: 'Niveau 2 — Validé par la mosquée locale',
   3: 'Niveau 3 — Certifié par un organisme agréé',
   4: 'Niveau 4 — 100% Halal',
+};
+
+const CATEGORY_LABELS: Record<string, string> = {
+  touristique: 'Lieu touristique',
+  divertissement: 'Lieu de divertissement',
 };
 
 export default async function PlaceDetailPage({ params }: Props) {
@@ -82,7 +88,9 @@ export default async function PlaceDetailPage({ params }: Props) {
         <div className="min-w-0 flex-1">
           <div className="mb-2 flex flex-wrap gap-1.5">
             <Badge variant="secondary">
-              {TYPE_LABELS[place.type] ?? place.type}
+              {(place.category && CATEGORY_LABELS[place.category]) ??
+                TYPE_LABELS[place.type] ??
+                place.type}
             </Badge>
             {place.halal_level && (
               <Badge>{HALAL_LABELS[place.halal_level]}</Badge>
@@ -126,6 +134,27 @@ export default async function PlaceDetailPage({ params }: Props) {
           <p className="text-sm leading-relaxed text-muted-foreground">
             {place.description}
           </p>
+        </div>
+      )}
+
+      {/* Horaires d'ouverture */}
+      {place.opening_hours && (
+        <div className="mb-6">
+          <h2 className="mb-2 font-semibold">Horaires</h2>
+          <p className="mb-2 text-sm font-medium">
+            {todaySummary(place.opening_hours)}
+          </p>
+          <ul className="space-y-0.5 text-sm text-muted-foreground">
+            {weekRows(place.opening_hours).map((row) => (
+              <li
+                key={row.day}
+                className={row.isToday ? 'font-medium text-foreground' : undefined}
+              >
+                <span className="inline-block w-24">{row.label}</span>
+                {formatSlots(row.slots)}
+              </li>
+            ))}
+          </ul>
         </div>
       )}
 

@@ -4,11 +4,13 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { MoonStar } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
+import { useI18n } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
 
 export function Navbar() {
   const pathname = usePathname();
   const { user, logout, isLoading } = useAuth();
+  const { t } = useI18n();
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur">
@@ -20,6 +22,16 @@ export function Navbar() {
           </Link>
           <nav className="hidden items-center gap-4 text-sm text-muted-foreground sm:flex">
             <Link
+              href="/carte"
+              className={
+                pathname.startsWith('/carte')
+                  ? 'font-medium text-foreground'
+                  : 'hover:text-foreground'
+              }
+            >
+              {t('nav.carte')}
+            </Link>
+            <Link
               href="/lieux"
               className={
                 pathname.startsWith('/lieux')
@@ -27,7 +39,7 @@ export function Navbar() {
                   : 'hover:text-foreground'
               }
             >
-              Lieux
+              {t('nav.lieux')}
             </Link>
             <Link
               href="/sejour"
@@ -37,7 +49,17 @@ export function Navbar() {
                   : 'hover:text-foreground'
               }
             >
-              Prévoir mon séjour
+              {t('nav.sejour')}
+            </Link>
+            <Link
+              href="/promos"
+              className={
+                pathname.startsWith('/promos')
+                  ? 'font-medium text-foreground'
+                  : 'hover:text-foreground'
+              }
+            >
+              {t('nav.promos')}
             </Link>
             {user && (
               <Link
@@ -48,7 +70,7 @@ export function Navbar() {
                     : 'hover:text-foreground'
                 }
               >
-                Favoris
+                {t('nav.favoris')}
               </Link>
             )}
             {user && (
@@ -60,7 +82,7 @@ export function Navbar() {
                     : 'hover:text-foreground'
                 }
               >
-                Profil
+                {t('nav.profil')}
               </Link>
             )}
           </nav>
@@ -73,7 +95,7 @@ export function Navbar() {
                 {user.role === 'admin' && (
                   <Link href="/admin">
                     <Button variant="outline" size="sm">
-                      Admin
+                      {t('nav.admin')}
                     </Button>
                   </Link>
                 )}
@@ -82,18 +104,18 @@ export function Navbar() {
                   size="sm"
                   onClick={() => void logout()}
                 >
-                  Déconnexion
+                  {t('nav.logout')}
                 </Button>
               </>
             ) : (
               <>
                 <Link href="/auth/connexion">
                   <Button variant="ghost" size="sm">
-                    Connexion
+                    {t('nav.login')}
                   </Button>
                 </Link>
                 <Link href="/auth/inscription">
-                  <Button size="sm">Inscription</Button>
+                  <Button size="sm">{t('nav.register')}</Button>
                 </Link>
               </>
             ))}

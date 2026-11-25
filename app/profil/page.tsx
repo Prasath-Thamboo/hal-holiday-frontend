@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { toast } from 'sonner';
 import { Download, Trash2 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
+import { useI18n } from '@/lib/i18n';
+import type { Locale } from '@/lib/i18n/dictionaries';
 import { usersMeApi } from '@/lib/api';
 import { ApiError } from '@/lib/types';
 import { Button } from '@/components/ui/button';
@@ -98,6 +100,7 @@ function PreferencesSection({
   notificationPreferences: { promos: boolean; planning_reminders: boolean; prayer_times: boolean };
   onSaved: () => void;
 }) {
+  const { t, setLocale } = useI18n();
   const [lang, setLang] = useState(language);
   const [halal, setHalal] = useState<number | ''>(halalStrictnessPreference ?? '');
   const [notifs, setNotifs] = useState(notificationPreferences);
@@ -108,7 +111,7 @@ function PreferencesSection({
     try {
       await usersMeApi.updatePreferences(partial, token);
       onSaved();
-      toast.success('Préférences enregistrées.');
+      toast.success(t('common.save'));
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : 'Une erreur est survenue.');
     } finally {
@@ -117,15 +120,17 @@ function PreferencesSection({
   }
 
   return (
-    <SectionCard title="Préférences">
+    <SectionCard title={t('profile.preferences')}>
       <div className="space-y-1.5">
-        <Label htmlFor="language">Langue de l&apos;application</Label>
+        <Label htmlFor="language">{t('profile.language')}</Label>
         <select
           id="language"
           value={lang}
           onChange={(e) => {
-            setLang(e.target.value);
-            void save({ language: e.target.value });
+            const next = e.target.value;
+            setLang(next);
+            setLocale(next as Locale); // bascule immédiate de l'UI
+            void save({ language: next });
           }}
           disabled={saving}
           className="h-8 w-full max-w-[200px] rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
@@ -136,7 +141,7 @@ function PreferencesSection({
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="halal-strictness">Rigueur halal par défaut</Label>
+        <Label htmlFor="halal-strictness">{t('profile.halal_default')}</Label>
         <select
           id="halal-strictness"
           value={halal}
@@ -148,24 +153,22 @@ function PreferencesSection({
           disabled={saving}
           className="h-8 w-full max-w-[240px] rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
         >
-          <option value="">Non renseigné</option>
+          <option value="">{t('profile.not_set')}</option>
           {[1, 2, 3, 4].map((level) => (
             <option key={level} value={level}>
               {level} — {HALAL_LABELS[level]}
             </option>
           ))}
         </select>
-        <p className="text-xs text-muted-foreground">
-          Utilisé comme filtre par défaut sur la carte et les recommandations.
-        </p>
+        <p className="text-xs text-muted-foreground">{t('profile.halal_help')}</p>
       </div>
 
       <Separator />
 
       <div className="space-y-3">
-        <p className="text-sm font-medium">Notifications</p>
+        <p className="text-sm font-medium">{t('profile.notifications')}</p>
         <NotifRow
-          label="Nouvelles promos"
+          label={t('profile.notif_promos')}
           checked={notifs.promos}
           disabled={saving}
           onChange={(checked) => {
@@ -175,7 +178,7 @@ function PreferencesSection({
           }}
         />
         <NotifRow
-          label="Rappels de planning"
+          label={t('profile.notif_planning')}
           checked={notifs.planning_reminders}
           disabled={saving}
           onChange={(checked) => {
@@ -185,7 +188,7 @@ function PreferencesSection({
           }}
         />
         <NotifRow
-          label="Horaires de prière"
+          label={t('profile.notif_prayer')}
           checked={notifs.prayer_times}
           disabled={saving}
           onChange={(checked) => {
