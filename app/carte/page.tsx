@@ -86,6 +86,7 @@ export default function CartePage() {
   // Géolocalisation avec repli sur Paris.
   useEffect(() => {
     if (!('geolocation' in navigator)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- lecture navigateur post-hydratation (SSR-safe)
       setCoords(PARIS);
       setUsingFallback(true);
       return;

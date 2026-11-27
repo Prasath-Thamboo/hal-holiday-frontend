@@ -69,6 +69,7 @@ export function I18nProvider({ children, userLocale }: Props) {
       : isLocale(stored)
         ? stored
         : DEFAULT_LOCALE;
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- lecture navigateur post-hydratation (SSR-safe)
     setLocaleState(resolved);
   }, [userLocale]);
 

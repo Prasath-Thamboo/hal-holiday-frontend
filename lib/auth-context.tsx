@@ -46,6 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const rt = localStorage.getItem(STORAGE_KEY);
     if (!rt) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- lecture navigateur post-hydratation (SSR-safe)
       setState((s) => ({ ...s, isLoading: false }));
       return;
     }

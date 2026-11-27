@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { OpeningHoursEditor } from '@/components/opening-hours-editor';
 import type { CreatePlacePayload, OpeningHours, Place, PlaceCategory } from '@/lib/types';
 
-export interface PlaceFormValues extends CreatePlacePayload {}
+export type PlaceFormValues = CreatePlacePayload;
 
 interface PlaceFormProps {
   defaultValues?: Partial<Place>;

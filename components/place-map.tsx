@@ -1,10 +1,9 @@
 'use client';
 
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import Link from 'next/link';
-import { LocateFixed } from 'lucide-react';
 import type { NearbyPlace, Place, PlaceCategory, PlaceType } from '@/lib/types';
 import { todaySummary } from '@/lib/opening-hours';
 
